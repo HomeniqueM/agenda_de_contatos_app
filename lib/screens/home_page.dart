@@ -1,3 +1,6 @@
+import 'package:agenda_de_contatos_app/screens/abas/tela_adicionar_contato.dart';
+import 'package:agenda_de_contatos_app/screens/abas/tela_de_listagem.dart';
+import 'package:agenda_de_contatos_app/screens/abas/tela_editar_contato.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 
@@ -9,7 +12,7 @@ class HomePage extends StatefulWidget{
 class _HomePage  extends State<HomePage>{
   @override
   Widget build(BuildContext context) {
-    var tamanhoTela =MediaQuery.of(context).size; // Tamanho total da tela
+
     return DefaultTabController(
       length: 3,
       child: Scaffold(
@@ -22,6 +25,7 @@ class _HomePage  extends State<HomePage>{
                 .copyWith(fontWeight: FontWeight.w700),
           ),
           bottom: TabBar(
+            // Abas de agenda
             tabs: <Widget>[
               Tab(text: 'Listar',icon: Icon(Icons.account_box_outlined),),
               Tab(text: 'Adicionar',icon: Icon(Icons.add_call),),
@@ -29,7 +33,13 @@ class _HomePage  extends State<HomePage>{
             ],
           ),
         ),
-
+      body: TabBarView(
+        children: [
+          ListagemContatos(),
+          AdicionarContato(),
+          EditarContato(),
+        ],
+      ),
       ),
     );
   }

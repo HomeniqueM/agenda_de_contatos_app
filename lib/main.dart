@@ -18,8 +18,7 @@ class MyApp extends StatelessWidget {
       title: 'Aplicativo de Notas',
       theme: ThemeData(
         primarySwatch: Colors.amber,
-
-
+        secondaryHeaderColor: Colors.amber[50],
 
       ),
       home:HomePage() ,
