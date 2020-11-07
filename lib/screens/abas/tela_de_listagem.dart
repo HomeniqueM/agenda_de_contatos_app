@@ -31,6 +31,14 @@ class _ListagemContatosState extends State<ListagemContatos> {
               'Nome',
             ),
             subtitle: Text('Email'),
+            leading: CircleAvatar(
+              child: Icon(
+                Icons.account_box_sharp,
+                color: Colors.amber,
+                size: 50,
+              ),
+              backgroundColor: Colors.transparent,
+            ),
           ),
         ),
       ],
