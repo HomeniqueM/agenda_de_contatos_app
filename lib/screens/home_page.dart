@@ -38,6 +38,7 @@ class _HomePage  extends State<HomePage>{
           ListagemContatos(),
           AdicionarContato(),
           EditarContato(),
+
         ],
       ),
       ),

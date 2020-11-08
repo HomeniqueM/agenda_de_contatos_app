@@ -1,3 +1,7 @@
+import 'package:agenda_de_contatos_app/modelo/contato_modelo.dart';
+import 'package:agenda_de_contatos_app/screens/abas/tela_de_listagem.dart';
+import 'package:agenda_de_contatos_app/screens/abas/tela_editar_contato.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -19,9 +23,8 @@ class _AdicionarContatoState extends State<AdicionarContato> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: GestureDetector(
-        onTap: () =>FocusScope.of(context).unfocus(),
+        onTap: () => FocusScope.of(context).unfocus(),
         child: SingleChildScrollView(
-
           child: Container(
             padding: EdgeInsets.symmetric(horizontal: 20.0),
             child: Column(
@@ -32,7 +35,9 @@ class _AdicionarContatoState extends State<AdicionarContato> {
                 Text(
                   'Novo Contato',
                   style: TextStyle(
-                      color: Colors.black, fontSize: 20, fontWeight: FontWeight.bold),
+                      color: Colors.black,
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold),
                 ),
                 SizedBox(height: 10),
                 Form(
@@ -95,7 +100,6 @@ class _AdicionarContatoState extends State<AdicionarContato> {
                               borderRadius: BorderRadius.circular(10),
                             ),
                           ),
-
                           validator: (input) => input.trim().length > 100
                               ? "Por favor informe um email valido"
                               : null,
@@ -116,7 +120,6 @@ class _AdicionarContatoState extends State<AdicionarContato> {
                               borderRadius: BorderRadius.circular(10),
                             ),
                           ),
-
                           validator: (input) => input.trim().length > 150
                               ? "Por favor, informe um endereço valido"
                               : null,
@@ -138,7 +141,6 @@ class _AdicionarContatoState extends State<AdicionarContato> {
                               borderRadius: BorderRadius.circular(10),
                             ),
                           ),
-
                           validator: (input) => input.trim().length > 10
                               ? "Por favor, informe um CEP valido"
                               : null,
@@ -175,10 +177,18 @@ class _AdicionarContatoState extends State<AdicionarContato> {
     );
   }
 
-  _submit() {
+  _submit() async {
     if (_formkey.currentState.validate()) {
       _formkey.currentState.save();
-      print('$_nome,$_numero,$_email,$_cep');
+      await FirebaseFirestore.instance.collection('contatos').add({
+        'nome': _nome,
+        'numero': _numero,
+        'email': _email,
+        'numero': _numero,
+        'endereco': _endereco,
+        'cep': _cep,
+      }).catchError((error) => print("Failed to add user: $error"));
+      
     }
   }
 }
