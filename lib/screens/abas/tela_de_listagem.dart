@@ -1,4 +1,4 @@
-import 'package:agenda_de_contatos_app/modelo/contato_modelo.dart';
+import 'package:agenda_de_contatos_app/modelos/contato_model.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -25,7 +25,6 @@ class _ListagemContatosState extends State<ListagemContatos> {
         }
 
         return ListView.builder(
-
           // Quantidade de elementos exibidos na tela
           itemCount: snapshot.data.docs.length,
           // Criar o lista de contatos
@@ -83,11 +82,7 @@ class _ListagemContatosState extends State<ListagemContatos> {
     );
   }
 
-  _updateAgenda(){
-    Future.delayed(Duration.zero, ()=>setState(
-        (){
-
-        }
-    ));
+  _updateAgenda() {
+    Future.delayed(Duration.zero, () => setState(() {}));
   }
 }
