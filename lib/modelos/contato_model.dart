@@ -1,31 +1,44 @@
-import 'package:agenda_de_contatos_app/modelos/base_model.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-class Contato extends BaseModel {
-  String nome;
-  String email;
-  String numero;
-  String endereco;
-  String cep;
+class Contato {
+  final String id;
+  final String nome;
+  final String email;
+  final String numero;
+  final String endereco;
+  final String cep;
+  final String aniversario;
 
-  Contato({this.nome, this.numero, this.email, this.cep, this.endereco});
+  const Contato(
+      {this.id,
+      this.nome,
+      this.numero,
+      this.email,
+      this.cep,
+      this.endereco,
+      this.aniversario});
 
-  Contato.fromMap(DocumentSnapshot document) {
-    fromBaseMap(document);
-    nome      = document["nome"];
-    email     = document["email"];
-    numero    = document['numero'];
-    endereco  = document['endereco'];
-    cep       = document['cep'];
+  factory Contato.froJson(Map<String, dynamic> json) {
+    return Contato(
+      id          : json['id'],
+      nome        : json['nome'],
+      email       : json['email'],
+      numero      : json['numero'],
+      endereco    : json['endereco'],
+      cep         : json['cep'],
+      aniversario : json['aniversario'],
+    );
   }
-  // Seriazador de objeto
+
   Map<String, dynamic> toMap() {
     return {
-      'nome'    : nome,
-      'email'   : email,
-      'numero'  : numero,
-      'endereco': endereco,
-      'cep'     : cep
+      'id'          : id,
+      'nome'        : nome,
+      'email'       : email,
+      'numero'      : numero,
+      'endereco'    : endereco,
+      'cep'         : cep,
+      'aniversario' : aniversario,
     };
   }
 }

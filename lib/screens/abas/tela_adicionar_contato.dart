@@ -1,13 +1,9 @@
-import 'package:agenda_de_contatos_app/interfaces/firebase_repository_base_interface.dart';
 import 'package:agenda_de_contatos_app/modelos/contato_model.dart';
-import 'package:agenda_de_contatos_app/screens/abas/tela_de_listagem.dart';
-import 'package:agenda_de_contatos_app/screens/abas/tela_editar_contato.dart';
-import 'package:agenda_de_contatos_app/services/contato_repository.dart';
+import 'package:agenda_de_contatos_app/provider/contatos.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_modular/flutter_modular.dart';
-
+import 'package:provider/provider.dart';
 
 class AdicionarContato extends StatefulWidget {
   @override
@@ -22,13 +18,7 @@ class _AdicionarContatoState extends State<AdicionarContato> {
   String _endereco = '';
   String _numero = '';
   String _cep = ''; // vou ler como String,porém armazenar com int
-  String id;
-  ContatoRepository contatoRepository;
-  @override
-  void initState() {
-    contatoRepository =Modular.get<IFirebaseRepositoryBaseInterface>();
-        super.initState();
-  }
+
   // Builder
   @override
   Widget build(BuildContext context) {
@@ -191,14 +181,16 @@ class _AdicionarContatoState extends State<AdicionarContato> {
   _submit() async {
     if (_formkey.currentState.validate()) {
       _formkey.currentState.save();
-      var user = Contato(
-        nome: _nome,
-        numero: _numero,
-        email: _email,
-        endereco: _endereco,
-        cep: _cep,
+      Provider.of<ContatosProvider>(context, listen: false).loadAll(
+        Contato(
+          nome: _nome,
+          email: _email,
+          numero: _numero,
+          cep: _cep,
+          endereco: _endereco,
+        ),
       );
-      id = contatoRepository.add(user) as String;
+      Provider.of<ContatosProvider>(context, listen: false).savaContato();
     }
   }
 }
