@@ -1,9 +1,12 @@
 import 'package:agenda_de_contatos_app/modelos/contato_model.dart';
 import 'package:agenda_de_contatos_app/provider/contatos.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_modular/flutter_modular.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class AdicionarContato extends StatefulWidget {
   @override
@@ -18,6 +21,11 @@ class _AdicionarContatoState extends State<AdicionarContato> {
   String _endereco = '';
   String _numero = '';
   String _cep = ''; // vou ler como String,porém armazenar com int
+  DateTime _Aniversario = DateTime.now();
+  TextEditingController _controllercep = TextEditingController();
+  TextEditingController _controllerEndereco = TextEditingController();
+  TextEditingController _dateController = TextEditingController();
+  final DateFormat _dateFormat = DateFormat('dd/MMM');
 
   // Builder
   @override
@@ -27,12 +35,12 @@ class _AdicionarContatoState extends State<AdicionarContato> {
         onTap: () => FocusScope.of(context).unfocus(),
         child: SingleChildScrollView(
           child: Container(
-            padding: EdgeInsets.symmetric(horizontal: 20.0),
+            padding: EdgeInsets.symmetric(horizontal: 10.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
                 // Espaço entre a barra
-                SizedBox(height: 20),
+                SizedBox(height: 10),
                 Text(
                   'Novo Contato',
                   style: TextStyle(
@@ -89,7 +97,7 @@ class _AdicionarContatoState extends State<AdicionarContato> {
                       ),
                       Padding(
                         padding: EdgeInsets.symmetric(
-                          vertical: 10.0,
+                          vertical: 15.0,
                         ),
                         child: TextFormField(
                           keyboardType: TextInputType.emailAddress,
@@ -113,19 +121,17 @@ class _AdicionarContatoState extends State<AdicionarContato> {
                           vertical: 10.0,
                         ),
                         child: TextFormField(
+                          readOnly: true,
+                          controller: _dateController,
+                          onTap: _handleDatePick,
                           style: TextStyle(fontSize: 15.0),
                           decoration: InputDecoration(
-                            labelText: 'Endereço',
+                            labelText: 'Aniversario',
                             labelStyle: TextStyle(fontSize: 15),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(10),
                             ),
                           ),
-                          validator: (input) => input.trim().length > 150
-                              ? "Por favor, informe um endereço valido"
-                              : null,
-                          onSaved: (input) => _endereco = input,
-                          initialValue: _endereco,
                         ),
                       ),
                       Padding(
@@ -133,6 +139,7 @@ class _AdicionarContatoState extends State<AdicionarContato> {
                           vertical: 10.0,
                         ),
                         child: TextFormField(
+                          controller: _controllercep,
                           keyboardType: TextInputType.number,
                           style: TextStyle(fontSize: 15.0),
                           decoration: InputDecoration(
@@ -142,11 +149,40 @@ class _AdicionarContatoState extends State<AdicionarContato> {
                               borderRadius: BorderRadius.circular(10),
                             ),
                           ),
-                          validator: (input) => input.trim().length > 10
-                              ? "Por favor, informe um CEP valido"
-                              : null,
-                          onSaved: (input) => _cep = input,
-                          initialValue: _cep,
+                        ),
+                      ),
+                      Container(
+                        margin: EdgeInsets.symmetric(vertical: 15),
+                        height: 30,
+                        width: 150,
+                        decoration: BoxDecoration(
+                            color: Theme.of(context).primaryColor,
+                            borderRadius: BorderRadius.circular(30)),
+                        child: FlatButton(
+                          child: Text(
+                            'Validar cep',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 15.0,
+                            ),
+                          ),
+                          onPressed: _handleCepPink,
+                        ),
+                      ),
+                      Padding(
+                        padding: EdgeInsets.symmetric(
+                          vertical: 10.0,
+                        ),
+                        child: TextFormField(
+                          controller: _controllerEndereco,
+                          style: TextStyle(fontSize: 15.0),
+                          decoration: InputDecoration(
+                            labelText: 'Endereço',
+                            labelStyle: TextStyle(fontSize: 15),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
                         ),
                       ),
                       Container(
@@ -186,11 +222,45 @@ class _AdicionarContatoState extends State<AdicionarContato> {
           nome: _nome,
           email: _email,
           numero: _numero,
-          cep: _cep,
+          cep: _controllercep.text,
           endereco: _endereco,
+          aniversario: _dateController.text,
         ),
       );
       Provider.of<ContatosProvider>(context, listen: false).savaContato();
     }
+  }
+
+  _handleDatePick() async {
+    final DateTime date = await showDatePicker(
+      context: context,
+      initialDate: _Aniversario,
+      firstDate: DateTime(1900),
+      lastDate: DateTime(2300),
+    );
+    if (date != null && date != _Aniversario) {
+      _dateController.text = _dateFormat.format(_Aniversario);
+    }
+    _dateController.text =_dateFormat.format(date).toString();
+  }
+
+  _handleCepPink() async {
+    String _cepDigitado = _controllercep.text;
+    print("Digitado: " + _cepDigitado);
+    String url = "https://viacep.com.br/ws/$_cepDigitado/json/";
+
+    http.Response response;
+    response = await http.get(url);
+    Map<String, dynamic> retorno = json.decode(response.body);
+
+    String logradouro = retorno["logradouro"];
+    String complemento = retorno["complemento"];
+    String bairro = retorno["bairro"];
+    String localidade = retorno["localidade"];
+
+    //configurar o _resultado
+    _endereco = "${logradouro}, ${complemento}, ${bairro}, ${localidade} ";
+
+    _controllerEndereco.text = _endereco.toString();
   }
 }

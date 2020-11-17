@@ -96,6 +96,7 @@ class ContatosProvider with ChangeNotifier {
       firestoreService.setContato(novoContato);
     } else {
       var updateContato = Contato(
+        id: _id,
         nome: _nome,
         email: _email,
         numero: _numero,

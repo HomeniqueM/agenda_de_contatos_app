@@ -31,6 +31,13 @@ dependencies:
   uuid: ^2.2.2 # Gerenciador de ID
   # Rotas, Injeção de Dependencia
   flutter_modular: ^2.0.1
+  http: ^0.12.2 # para usar solicitações http
+  date_format: ^1.0.9 # tratativas de datas
+  intl: ^0.16.1 # manipulação da data
+  googleapis: ^0.56.1
+  googleapis_auth: ^0.2.12
+  url_launcher: ^5.7.10
+  flutter_datetime_picker:
 
 
   # The following adds the Cupertino Icons font to your application.

@@ -1,7 +1,10 @@
 import 'package:agenda_de_contatos_app/modelos/contato_model.dart';
 import 'package:agenda_de_contatos_app/provider/contatos.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class EditarContato extends StatefulWidget {
   // Definições
@@ -17,7 +20,11 @@ class _EditarContatoState extends State<EditarContato> {
   final _formkey = GlobalKey<FormState>();
   final Map<String, String> _forData = {};
 
-  TextEditingController _dataController = TextEditingController();
+  DateTime _Aniversario = DateTime.now();
+  TextEditingController _controllercep = TextEditingController();
+  TextEditingController _controllerEndereco = TextEditingController();
+  TextEditingController _dateController = TextEditingController();
+  final DateFormat _dateFormat = DateFormat('dd/MMM');
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +38,7 @@ class _EditarContatoState extends State<EditarContato> {
             IconButton(
               icon: Icon(
                 Icons.delete,
-                color: Colors.red[500],
+                color: Colors.grey,
                 size: 40,
               ),
               onPressed: () {
@@ -94,24 +101,9 @@ class _EditarContatoState extends State<EditarContato> {
                         _lerEmail(),
                         _lerAniversario(),
                         _lerCEP(),
+                        _botaoDevalidacaodeCep(context),
                         carregarEndereco(),
-                        Container(
-                          margin: EdgeInsets.symmetric(vertical: 15.0),
-                          height: 60.0,
-                          width: double.infinity,
-                          decoration: BoxDecoration(
-                            color: Theme.of(context).primaryColor,
-                            borderRadius: BorderRadius.circular(30.0),
-                          ),
-                          child: FlatButton(
-                            child: Text(
-                              'Alterar',
-                              style: TextStyle(
-                                  fontSize: 20.0, color: Colors.white),
-                            ),
-                            onPressed: _salvar,
-                          ),
-                        )
+                        _botaoDeAlterar(context)
                       ],
                     ),
                   )
@@ -122,11 +114,51 @@ class _EditarContatoState extends State<EditarContato> {
         ));
   }
 
+  Container _botaoDeAlterar(BuildContext context) {
+    return Container(
+      margin: EdgeInsets.symmetric(vertical: 15.0),
+      height: 60.0,
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: Theme.of(context).primaryColor,
+        borderRadius: BorderRadius.circular(30.0),
+      ),
+      child: FlatButton(
+        child: Text(
+          'Alterar',
+          style: TextStyle(fontSize: 20.0, color: Colors.white),
+        ),
+        onPressed: _salvar,
+      ),
+    );
+  }
+
+  Container _botaoDevalidacaodeCep(BuildContext context) {
+    return Container(
+      margin: EdgeInsets.symmetric(vertical: 15),
+      height: 30,
+      width: 150,
+      decoration: BoxDecoration(
+          color: Theme.of(context).primaryColor,
+          borderRadius: BorderRadius.circular(30)),
+      child: FlatButton(
+        child: Text(
+          'Validar cep',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 15.0,
+          ),
+        ),
+        onPressed: _handleCepPink,
+      ),
+    );
+  }
+
   Padding carregarEndereco() {
     return Padding(
       padding: EdgeInsets.symmetric(vertical: 15.0),
       child: TextFormField(
-        readOnly: true,
+        controller: _controllerEndereco,
         style: TextStyle(fontSize: 18.0),
         decoration: InputDecoration(
           labelText: 'Endereço',
@@ -135,8 +167,6 @@ class _EditarContatoState extends State<EditarContato> {
             borderRadius: BorderRadius.circular(10),
           ),
         ),
-        onSaved: (input) => _forData['endereco'] = input,
-        initialValue: _forData['endereco'],
       ),
     );
   }
@@ -145,7 +175,9 @@ class _EditarContatoState extends State<EditarContato> {
     return Padding(
       padding: EdgeInsets.symmetric(vertical: 15.0),
       child: TextFormField(
+        controller: _controllercep,
         style: TextStyle(fontSize: 18.0),
+        keyboardType: TextInputType.number,
         decoration: InputDecoration(
           labelText: 'CEP',
           labelStyle: TextStyle(fontSize: 18.0),
@@ -153,8 +185,6 @@ class _EditarContatoState extends State<EditarContato> {
             borderRadius: BorderRadius.circular(10),
           ),
         ),
-        onSaved: (input) => _forData['cep'] = input,
-        initialValue: _forData['cep'],
       ),
     );
   }
@@ -181,9 +211,10 @@ class _EditarContatoState extends State<EditarContato> {
     return Padding(
       padding: EdgeInsets.symmetric(vertical: 15.0),
       child: TextFormField(
-        controller: _dataController,
+        readOnly: true,
+        controller: _dateController,
         style: TextStyle(fontSize: 18.0),
-        onTap: () => {},
+        onTap: _handleDatePick,
         decoration: InputDecoration(
           labelText: 'Aniversario',
           labelStyle: TextStyle(fontSize: 18.0),
@@ -249,8 +280,9 @@ class _EditarContatoState extends State<EditarContato> {
           nome: _forData['nome'],
           email: _forData['email'],
           numero: _forData['numero'],
-          cep: _forData['cep'],
-          endereco: _forData['endereco'],
+          cep: _controllercep.text,
+          endereco: _controllerEndereco.text,
+          aniversario: _dateController.text,
         ),
       );
       Provider.of<ContatosProvider>(context, listen: false).savaContato();
@@ -263,7 +295,43 @@ class _EditarContatoState extends State<EditarContato> {
     _forData['nome'] = contato.nome;
     _forData['numero'] = contato.numero;
     _forData['email'] = contato.email;
-    _forData['cep'] = contato.cep;
-    _forData['endereco'] = contato.endereco;
+    _controllercep.text = contato.cep;
+    _controllerEndereco.text = contato.endereco;
+    _dateController.text = contato.aniversario;
+    print("Digitado: " + _controllercep.text);
+  }
+
+  _handleDatePick() async {
+    final DateTime date = await showDatePicker(
+      context: context,
+      initialDate: _Aniversario,
+      firstDate: DateTime(1900),
+      lastDate: DateTime(2300),
+    );
+    if (date != null && date != _Aniversario) {
+      _dateController.text = _dateFormat.format(_Aniversario);
+    }
+    _dateController.text = _dateFormat.format(date).toString();
+  }
+
+  _handleCepPink() async {
+    String _cepDigitado = _controllercep.text;
+    print("Digitado: " + _cepDigitado);
+    String url = "https://viacep.com.br/ws/$_cepDigitado/json/";
+
+    http.Response response;
+    response = await http.get(url);
+    Map<String, dynamic> retorno = json.decode(response.body);
+
+    String logradouro = retorno["logradouro"];
+    String complemento = retorno["complemento"];
+    String bairro = retorno["bairro"];
+    String localidade = retorno["localidade"];
+
+    //configurar o _resultado
+    _forData['endereco'] =
+        "${logradouro}, ${complemento}, ${bairro}, ${localidade} ";
+
+    _controllerEndereco.text = _forData['endereco'].toString();
   }
 }
